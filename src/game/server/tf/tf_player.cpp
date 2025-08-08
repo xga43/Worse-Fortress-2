@@ -137,6 +137,7 @@
 
 #include "gc_clientsystem.h"
 
+#include <iostream>
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -1831,6 +1832,7 @@ void CTFPlayer::RegenThink( void )
 	CALL_ATTRIB_HOOK_FLOAT( flRegenAmount, add_health_regen );
 	if ( flRegenAmount )
 	{
+		std::printf("%i", "suca");
 		float flTimeSinceDamage = gpGlobals->curtime - GetLastDamageReceivedTime();
 		float flScale = 1.0f;
 		// Ignore Scale for MvM, always give full regen

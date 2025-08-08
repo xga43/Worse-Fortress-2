@@ -18,6 +18,7 @@
 
 #include <google/protobuf/text_format.h>
 #include <string.h>
+#include <string>
 
 #include "materialsystem/imaterialsystem.h"
 #include "materialsystem/itexture.h"
@@ -5253,7 +5254,6 @@ bool CEconItemSchema::BInitAttributes( KeyValues *pKVAttributes, CUtlVector<CUtl
 		if( !rbAttributeNames.IsValidIndex( iIndex ) )
 			rbAttributeNames.Insert( m_mapAttributes[i].GetDefinitionName() );
 	}
-
 	return SCHEMA_INIT_SUCCESS();
 }
 

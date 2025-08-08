@@ -155,6 +155,7 @@ enum
 
 #define TF_DAMAGE_CRIT_MULTIPLIER			3.0f
 #define TF_DAMAGE_MINICRIT_MULTIPLIER		1.35f
+#define TF_DAMAGE_HALFCRIT_MULT				2.0f
 
 //-----------------------------------------------------------------------------
 // TF-specific viewport panels

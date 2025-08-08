@@ -30,6 +30,7 @@ public:
 		CRIT_NONE = 0,
 		CRIT_MINI,
 		CRIT_FULL,
+		CRIT_HALF,
 	};
 
 

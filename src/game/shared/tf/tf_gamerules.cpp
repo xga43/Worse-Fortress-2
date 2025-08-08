@@ -5698,7 +5698,7 @@ void CTFRadiusDamageInfo::CalculateFalloff( void )
 	if ( pWeapon != NULL )
 	{
 		float flFalloffMod = 1.f;
-		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pWeapon, flFalloffMod, mult_dmg_falloff );
+		CALL_ATTRIB_HOOK_FLOAT_ON_OTHER( pWeapon, flFalloffMod, _falloff );
 		if ( flFalloffMod != 1.f )
 		{
 			flFalloff += flFalloffMod;
@@ -5976,7 +5976,29 @@ bool CTFGameRules::ApplyOnDamageModifyRules( CTakeDamageInfo &info, CBaseEntity 
 				}
 			}
 		}
- 
+		
+		int hCritVsWet = 0;
+		CALL_ATTRIB_HOOK_INT_ON_OTHER( pWeapon, hCritVsWet, hcrit_vs_wet_players );
+		if ( hCritVsWet )
+		{
+			float flWaterExitTime = pVictim->GetWaterExitTime();
+
+			if ( pVictim->m_Shared.InCond( TF_COND_URINE ) ||
+				 pVictim->m_Shared.InCond( TF_COND_MAD_MILK ) ||
+				 pVictim->m_Shared.InCond( TF_COND_GAS ) ||
+			   ( pVictim->GetWaterLevel() > WL_NotInWater ) ||
+			   ( ( flWaterExitTime > 0 ) && ( gpGlobals->curtime - flWaterExitTime < 5.0f ) ) ) // or they exited the water in the last few seconds
+			{
+
+				info.SetCritType( CTakeDamageInfo::CRIT_HALF );
+
+				if ( pWeapon && ( pWeapon->GetWeaponID() == TF_WEAPON_BREAKABLE_SIGN ) )
+				{
+					pWeapon->SetBroken( true );
+				}
+			}
+		}
+
 		// Crit against players that don't have these conditions
 		int iCritDamageNotTypes = 0;
 		CALL_ATTRIB_HOOK_INT_ON_OTHER( pWeapon, iCritDamageNotTypes, or_crit_vs_not_playercond );
@@ -6644,7 +6666,7 @@ bool CTFGameRules::ApplyOnDamageModifyRules( CTakeDamageInfo &info, CBaseEntity 
 		// damage, we fabs'd so that we can account for it as a bonus - since it's present in a crit.
 		float flBonusDamage = bForceCritFalloff ? 0.f : fabs( flDmgVariance );
 		CTFPlayer *pProvider = NULL;
-
+		//crit code
 		auto lambdaDoMinicrit = [&]( bool bDemote )
 		{
 			// We should never have both of these flags set or Weird Things will happen with the damage numbers
@@ -6723,9 +6745,22 @@ bool CTFGameRules::ApplyOnDamageModifyRules( CTakeDamageInfo &info, CBaseEntity 
 			}
 		};
 
+		auto lambdaDoHalfCrit = [&]()
+		{
+			Assert( !(bitsDamage & DMG_CRITICAL) );
+			if ( info.GetCritType() != CTakeDamageInfo::CRIT_MINI  && info.GetCritType() != CTakeDamageInfo::CRIT_FULL)
+			{
+				COMPILE_TIME_ASSERT( TF_DAMAGE_HALFCRIT_MULT > 1.f );
+				flCritDamage = ( TF_DAMAGE_HALFCRIT_MULT - 1.f ) * flDamage;
+			}				
+		};
+		//apply crit and/or crit demotion
 		if ( info.GetCritType() == CTakeDamageInfo::CRIT_MINI )
 		{
 			lambdaDoMinicrit( false );
+		}
+		else if(info.GetCritType() == CTakeDamageInfo::CRIT_HALF ){
+			lambdaDoHalfCrit();
 		}
 		else if ( bCrit )
 		{
